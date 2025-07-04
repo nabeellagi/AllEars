@@ -8,11 +8,13 @@
 		"zip": "npm run build && mkdir -p dist && zip -r dist/game.zip dist -x \"**/.DS_Store\""
 	},
 	"dependencies": {
+		"@netlify/vite-plugin": "^2.3.4",
 		"hammerjs": "^2.0.8",
 		"kaplay": "^3001.0.18"
 	},
 	"devDependencies": {
 		"@types/node": "^22.15.30",
-		"vite": "^6.3.5"
+		"vite": "^6.3.5",
+		"vite-plugin-pwa": "^1.0.1"
 	}
 }

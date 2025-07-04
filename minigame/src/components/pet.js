@@ -26,7 +26,8 @@ export class Pet {
 
     this.spriteMap = {
       normal: "idle",
-      drag:"drag"
+      drag:"drag",
+      sad:"sad"
       // Add more states here as needed
     };
 

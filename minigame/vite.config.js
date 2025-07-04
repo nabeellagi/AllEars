@@ -1,4 +1,5 @@
 import { defineConfig } from "vite";
+import { VitePWA } from 'vite-plugin-pwa';
 
 const kaplayCongrats = () => {
     return {
@@ -33,5 +34,24 @@ export default defineConfig({
     plugins: [
         // Disable messages removing this line
         kaplayCongrats(),
-    ],
+        VitePWA({
+        registerType: 'autoUpdate',
+        workbox: {
+            globPatterns: ['**/*.{js,css,html,png,svg,ogg,wav}'],
+            maximumFileSizeToCacheInBytes: 6 * 1024 * 1024 // 6 MB
+        },
+        manifest: {
+            name: 'Kaboom Pet Game',
+            short_name: 'KaboomPet',
+            theme_color: '#ffffff',
+            icons: [
+            {
+                src: 'pwa-icon.png',
+                sizes: '192x192',
+                type: 'image/png'
+            }
+            ]
+        }
+        })
+    ]
 });

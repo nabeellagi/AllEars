@@ -1,3 +1,9 @@
 backend/venv/
 backend/.env
+backend/app/memory
+backend/app/dist
+backend/app/build/
+minigame/app/dist/
 AllEars/android
+# Local Netlify folder
+.netlify

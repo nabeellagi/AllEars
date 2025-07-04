@@ -65,9 +65,9 @@ class _MainNavigationState extends State<MainNavigation> {
         key: _navKey,
         index: _selectedIndex,
         items: const [
-          Icon(Icons.home, size: 30, color: AppColors.karry,),
-          Icon(Icons.person, size: 30, color: AppColors.karry),
-          Icon(Icons.person, size: 30, color: AppColors.karry),
+          Icon(Icons.pets, size: 30, color: AppColors.karry,),
+          Icon(Icons.checklist, size: 30, color: AppColors.karry),
+          Icon(Icons.chat_bubble_outline_rounded, size: 30, color: AppColors.karry),
         ],
         color: AppColors.waikawaGray,
         buttonBackgroundColor: AppColors.waikawaGray,

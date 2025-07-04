@@ -8,13 +8,13 @@ import k from "../game.js";
 import getTimePeriod from "../helpers/getTime.js";
 
 k.scene("menu", async () => {
-  const DECAY_INTERVAL = 1800;
+  const DECAY_INTERVAL = 1000;
   const DECAY_AMOUNT = -1;
 
   function applyOfflineHPDecay(pet) {
   const lastCheck = parseInt(localStorage.getItem("last_check"));
   const now = Date.now();
-
+ 
   if (!lastCheck) {
     localStorage.setItem("last_check", now.toString());
     return;
@@ -54,8 +54,17 @@ k.scene("menu", async () => {
   await Promise.all([
     k.loadSprite("ground", "/ground.png"),
     k.loadSprite("idle", "/sprites/idle.png"),
-    k.loadSprite("drag", "/sprites/drag.png")
+    k.loadSprite("drag", "/sprites/drag.png"),
+    k.loadSprite("sad", "/sprites/sad.png"),
+    k.loadSound("u3u", "/sound/u3u.ogg"),
+    k.loadSound("hit", "/sound/hit.wav"),
+    k.loadSound("hp", "/sound/hp.wav")
   ]);
+
+  k.play("u3u", {
+    loop:true,
+    volume: 0.6
+  })
 
   const bgSpeed = 5;
   const bgs = [];
@@ -105,6 +114,10 @@ k.scene("menu", async () => {
     ]
   });
 
+  if(pet.getHP() < 25){
+    pet.setState('sad');
+  }
+
   let isDragging = false;
   let dropAmount = 0;
   let dragOffset = k.vec2(0, 0);
@@ -153,6 +166,19 @@ k.scene("menu", async () => {
       pet.changeHP(EGG_HP_GAIN);
       if (hpBar) {
         hpBar.update(pet.getHP());
+        new Popup({
+          message: "Restore " + EGG_HP_GAIN + " HP",
+          y: 200, // position vertically
+          x: 100,
+          duration: 2000
+        });
+        k.play("hp");
+        if(pet.getHP() < 25){
+          pet.setState('sad');
+        }else{
+          pet.setState("normal");
+        }
+        return;
       }
     }
   });
@@ -167,7 +193,12 @@ k.scene("menu", async () => {
       const STEAK_EXP_COST = 12;
       const STEAK_HP_GAIN = 35;
       if (score < STEAK_EXP_COST) {
-        alert("Not enough EXP to consume this food.");
+        new Popup({
+          message: "❌ Not enough EXP!",
+          y: 200, // position vertically
+          x: 170,
+          duration: 2000
+        });
         return;
       }
       if (window.FlutterChannel && window.FlutterChannel.postMessage) {
@@ -182,12 +213,28 @@ k.scene("menu", async () => {
       pet.changeHP(STEAK_HP_GAIN);
       if (hpBar) {
         hpBar.update(pet.getHP());
+        new Popup({
+          message: "Restore " + STEAK_HP_GAIN + " HP",
+          y: 200, // position vertically
+          x: 100,
+          duration: 2000
+        });
+        k.play("hp");
+        if(pet.getHP() < 25){
+          pet.setState('sad');
+        }else{
+          pet.setState("normal");
+        }
+        return;
       }
     }
   });
 
 
-  petObj.onCollide("wall", () => k.shake(1));
+  petObj.onCollide("wall", () => {
+    k.shake(1)
+    k.play("hit")
+  });
   petObj.onCollide("bottomWall", () => {
     pet.setPosition(0, 0)
     pet.changeHP(-1)
@@ -224,7 +271,11 @@ k.scene("menu", async () => {
   });
 
   k.onTouchEnd(() => {
-    pet.setState('normal');
+    if(pet.getHP() < 25){
+      pet.setState('sad');
+    }else{
+      pet.setState("normal");
+    }
     if (isDragging) {
       isDragging = false;
       if (dropAmount % 4 == 0 && dropAmount > 1
@@ -249,12 +300,12 @@ k.scene("menu", async () => {
   let decayTimer = 0;
 
   k.onUpdate(() => {
-    if(pet.getHP() < 20){
-      pet.setState('drag')
-    }
     decayTimer += k.dt();
     if (decayTimer >= DECAY_INTERVAL) {
       pet.changeHP(DECAY_AMOUNT);
+      if(pet.getHP() < 25){
+        pet.setState('sad')
+      }
       localStorage.setItem("last_check", Date.now().toString());
       decayTimer = 0;
     }
@@ -276,10 +327,16 @@ k.scene("menu", async () => {
     }
   });
 
-    k.onKeyPress("w", () => {
-    pet.changeHP(10);
-    localStorage.setItem("current_hp", pet.getHP().toString());
-    hpBar.update(pet.getHP());
-  });
+  // k.onKeyPress("w", () => {
+  //   pet.changeHP(10);
+  //   localStorage.setItem("current_hp", pet.getHP().toString());
+  //   hpBar.update(pet.getHP());
+  //   k.play("hp");
+  //   if(pet.getHP() < 25){
+  //     pet.setState('sad');
+  //   }else{
+  //     pet.setState("normal");
+  //   }
+  // });
 
 });

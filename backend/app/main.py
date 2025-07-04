@@ -1,17 +1,12 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from routers import askai
+# main.py
+import threading
+from app import app, keyboard_exit_listener
+import uvicorn
+import sys
 
-app = FastAPI()
+if __name__ == "__main__":
+    if sys.stdin.isatty():
+        listener_thread = threading.Thread(target=keyboard_exit_listener, daemon=True)
+        listener_thread.start()
 
-# Enable CORS for all origins, methods, and headers
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins
-    allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods (GET, POST, PUT, DELETE, etc.)
-    allow_headers=["*"],  # Allows all headers
-)
-
-# Include your router
-app.include_router(askai.router)
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")

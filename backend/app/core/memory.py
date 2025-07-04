@@ -1,64 +1,146 @@
 import os
+import json
+import nltk
 from sentence_transformers import SentenceTransformer, util
+from sumy.parsers.plaintext import PlaintextParser
+from sumy.nlp.tokenizers import Tokenizer
+from sumy.summarizers.lex_rank import LexRankSummarizer
+from nltk.corpus import stopwords
+import string
+from keybert import KeyBERT
+from difflib import get_close_matches
+
+# Download required models and resources
+nltk.download('punkt')
+nltk.download('stopwords')
+
+stop_words = set(stopwords.words('english'))
+punct = set(string.punctuation)
 
 model = SentenceTransformer('all-MiniLM-L6-v2')  # Good for RAG
+kw_model = KeyBERT(model)
 
 MEMORY_DIR = "memory"
 
 def get_memory_path(user_id: int) -> str:
-    return os.path.join(MEMORY_DIR, f"{user_id}.txt")
+    return os.path.join(MEMORY_DIR, f"{user_id}.jsonl")
 
 def ensure_memory_file_exists(filepath):
-    """Creates the memory file if it does not exist."""
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     if not os.path.exists(filepath):
         with open(filepath, "w", encoding="utf-8") as f:
-            f.write("")  # Create an empty file
+            f.write("")
 
-def read_memories(user_id: int):
-    filepath = get_memory_path(user_id)
-    ensure_memory_file_exists(filepath)
+def extract_tags(text: str) -> set:
+    keywords = kw_model.extract_keywords(
+        text,
+        keyphrase_ngram_range=(1, 2),
+        stop_words='english',
+        use_mmr=True,
+        diversity=0.7,
+        top_n=15
+    )
 
-    with open(filepath, "r", encoding="utf-8") as f:
-        blocks = f.read().split("\n---\n")
-        return [block.strip() for block in blocks if block.strip()]
+    # Filter by minimum relevance score and remove greetings/common phrases
+    MIN_SCORE = 0.45
+    banned = {
+        "hello", "hi", "welcome", "thanks", "goodbye", "bye", "nice to meet", "nice meeting",
+        "take care", "thank you", "you're welcome", "see you", "how are you", "on your mind"
+    }
 
-def retrieve_memories(query, memory_blocks, top_k=4, include_last=True):
-    if not memory_blocks:
-        return []
+    cleaned_tags = set()
+    for phrase, score in keywords:
+        phrase = phrase.lower().strip()
+        if score < MIN_SCORE:
+            continue
+        if phrase in banned:
+            continue
+        if any(b in phrase for b in banned):
+            continue
+        if phrase in cleaned_tags:
+            continue
+        cleaned_tags.add(phrase)
 
-    corpus_embeddings = model.encode(memory_blocks, convert_to_tensor=True)
-    query_embedding = model.encode([query], convert_to_tensor=True)
-
-    hits = util.semantic_search(query_embedding, corpus_embeddings, top_k=top_k)
-    top_blocks = [memory_blocks[hit['corpus_id']] for hit in hits[0]]
-
-    if include_last:
-        last_block = memory_blocks[-1]
-        if last_block not in top_blocks:
-            top_blocks.append(last_block)
-
-    return top_blocks
-
-def get_latest_memories(n=3, user_id: int = None):
-    filepath = get_memory_path(user_id)
-    ensure_memory_file_exists(filepath)
-
-    with open(filepath, "r", encoding="utf-8") as f:
-        blocks = f.read().split("\n---\n")
-        cleaned_blocks = [block.strip() for block in blocks if block.strip()]
-        return cleaned_blocks[-n:] if n <= len(cleaned_blocks) else cleaned_blocks
+    return cleaned_tags
 
 def append_memory(user_prompt, ai_response, user_id: int):
     filepath = get_memory_path(user_id)
     ensure_memory_file_exists(filepath)
 
+    tags = list(extract_tags(user_prompt + " " + ai_response))
+    memory_block = {
+        "user": user_prompt,
+        "assistant": ai_response,
+        "tags": tags
+    }
     with open(filepath, "a", encoding="utf-8") as f:
-        f.write(f"User: {user_prompt}\nAssistant: {ai_response}\n\n---\n\n")
+        f.write(json.dumps(memory_block, ensure_ascii=False) + "\n")
+
+def read_memories(user_id: int):
+    filepath = get_memory_path(user_id)
+    ensure_memory_file_exists(filepath)
+    memories = []
+    with open(filepath, "r", encoding="utf-8") as f:
+        for line in f:
+            try:
+                memories.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+    return memories
+
+def get_latest_memories(n=3, user_id: int = None):
+    memories = read_memories(user_id)
+    return memories[-n:] if n <= len(memories) else memories
+
+def retrieve_memories(query, memory_blocks, top_k=5):
+    memory_texts = [f"User: {m['user']}\nAssistant: {m['assistant']}" for m in memory_blocks]
+    query_embedding = model.encode(query, convert_to_tensor=True)
+    memory_embeddings = model.encode(memory_texts, convert_to_tensor=True)
+    selected_indices = util.semantic_search(query_embedding, memory_embeddings, top_k=top_k)[0]
+    selected = [memory_texts[match['corpus_id']] for match in selected_indices]
+    return selected
+
+def tag_matches(query_tag: str, tags: list[str], threshold=0.8):
+    matches = get_close_matches(query_tag, tags, cutoff=threshold)
+    return bool(matches)
+
+def retrieve_by_tag(query_tag: str, user_id: int):
+    query_tag = query_tag.lower()
+    memories = read_memories(user_id)
+    return [m for m in memories if tag_matches(query_tag, m.get("tags", []))]
+
+def summarize_memories(user_id: int):
+    memory_blocks = read_memories(user_id)
+    if not memory_blocks:
+        print("No significant memories recorded yet.")
+        return " "
+
+    full_text = "\n\n".join(f"User: {m['user']}\nAssistant: {m['assistant']}" for m in memory_blocks)
+    if len(full_text.split()) < 50:
+        print("Not enough memory to summarize meaningfully.")
+        return " "
+
+    return summarize_text(full_text)
+
+def summarize_text(text):
+    parser = PlaintextParser.from_string(text, Tokenizer("english"))
+    summarizer = LexRankSummarizer()
+    summary_sentences = summarizer(parser.document, sentences_count=5)
+    return "\n".join(str(sentence) for sentence in summary_sentences)
 
 def clear_memory(user_id: int):
-    """Clears all stored memories for a given user."""
     filepath = get_memory_path(user_id)
-    ensure_memory_file_exists(filepath)  # Make sure file exists
+    ensure_memory_file_exists(filepath)
     with open(filepath, "w", encoding="utf-8") as f:
-        f.write("")  # Empty the file content
+        f.write("")
+
+def trigger_memory_check(user_input: str, user_id: int):
+    query_tags = extract_tags(user_input)
+    triggered_memories = {}
+
+    for tag in query_tags:
+        blocks = retrieve_by_tag(tag, user_id)
+        if blocks:
+            triggered_memories[tag] = blocks
+
+    return triggered_memories

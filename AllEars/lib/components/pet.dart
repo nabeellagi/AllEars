@@ -67,13 +67,12 @@ class _PetGameViewState extends State<PetGameView> {
   void sendScoreToWebView() {
     _controller.runJavaScript('window.setScore && window.setScore($score);');
     _controller.setNavigationDelegate(
-    NavigationDelegate(
-      onPageFinished: (url) {
-        sendScoreToWebView(); // Now it's safe!
-      },
-    ),
-);
-
+      NavigationDelegate(
+        onPageFinished: (url) {
+          sendScoreToWebView(); // Now it's safe!
+        },
+      ),
+    );
   }
 
   void initWebView() {
@@ -86,7 +85,7 @@ class _PetGameViewState extends State<PetGameView> {
           handleWebMessage(message.message);
         },
       )
-      ..loadRequest(Uri.parse("http://192.168.18.9:3001/"));
+      ..loadRequest(Uri.parse("https://allearspet.vercel.app/"));
 
     if (controller.platform is AndroidWebViewController) {
       AndroidWebViewController.enableDebugging(true);
@@ -118,28 +117,45 @@ class _PetGameViewState extends State<PetGameView> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: SizedBox(
-        width: 350,
-        height: 500,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: WebViewWidget(
-            controller: _controller,
-            gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
-              Factory<VerticalDragGestureRecognizer>(
-                () => VerticalDragGestureRecognizer(),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center, // Center the column content vertically
+      children: [
+        Center(
+          child: SizedBox(
+            width: 350,
+            height: 500,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: WebViewWidget(
+                controller: _controller,
+                gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+                  Factory<VerticalDragGestureRecognizer>(
+                    () => VerticalDragGestureRecognizer(),
+                  ),
+                  Factory<HorizontalDragGestureRecognizer>(
+                    () => HorizontalDragGestureRecognizer(),
+                  ),
+                  Factory<ScaleGestureRecognizer>(
+                    () => ScaleGestureRecognizer(),
+                  ),
+                },
               ),
-              Factory<HorizontalDragGestureRecognizer>(
-                () => HorizontalDragGestureRecognizer(),
-              ),
-              Factory<ScaleGestureRecognizer>(
-                () => ScaleGestureRecognizer(),
-              ),
+            ),
+          ),
+        ),
+        const Padding(
+          padding: EdgeInsets.only(top: 20.0), // 20 pixels below the webview box
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 20.0), // 20 pixels away from the webview box
+          child: IconButton(
+            icon: const Icon(Icons.refresh, size: 30),
+            onPressed: () {
+              _controller.reload(); // Reload the webview
             },
           ),
         ),
-      ),
+      ],
     );
   }
 }
