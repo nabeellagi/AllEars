@@ -11,6 +11,7 @@ Gamified Digital Pet for Task Routine and AI Listener for Everyday Life.
 
 ### Digital Pet 
 Pet Companion for Routine Gamification
+
 AllEars transforms your daily routines into a rewarding and playful experience through a virtual pet companion that grows with you. No pressure, no punishment, just a cute, uplifting presence that celebrates consistency, **one task at a time**.
 
 <p align="center">
