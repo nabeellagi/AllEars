@@ -39,9 +39,9 @@ Head over to the Releases section of this repository and download the latest .ap
 
 Since this app isn't from the Play Store, Android needs your permission to install it:
 
-    ```Go to your phone's Settings > Security (or Apps & Notifications > Special app access)```
-
-    ```Enable Install unknown apps for your browser or file manager.```
+    Go to your phone's Settings > Security (or Apps & Notifications > Special app access)
+    
+    Enable Install unknown apps for your browser or file manager.
 
 3. Install the APK
 
