@@ -7,3 +7,5 @@ minigame/app/dist/
 AllEars/android
 # Local Netlify folder
 .netlify
+test.py
+app-release.apk
