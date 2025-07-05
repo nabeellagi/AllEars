@@ -32,47 +32,58 @@ Sometimes, you just need to talk and AllEars is ready to listen. With a built-in
 To use AllEars on your Android device:
 
 1. Download the APK file
+
 Head over to the Releases section of this repository and download the latest .apk file.
 
 2. Allow installation from unknown sources
+
 Since this app isn't from the Play Store, Android needs your permission to install it:
 
-    Go to your phone's Settings > Security (or Apps & Notifications > Special app access)
+    ```Go to your phone's Settings > Security (or Apps & Notifications > Special app access)```
 
-    Enable Install unknown apps for your browser or file manager.
+    ```Enable Install unknown apps for your browser or file manager.```
 
 3. Install the APK
+
 Locate the downloaded file (usually in your Downloads folder) and tap it to begin installation.
 
 4. Ensure a stable internet connection
+
 The app connects with the pet minigame online, so make sure your phone has a good Wi-Fi or mobile data connection.
 
- 2. Setting Up the AllEarsServer (AI Backend)
+ 5. Setting Up the AllEarsServer (AI Backend)
+
 To use the AI Listener feature, you’ll need to run the AllEarsServer on your computer.
 
 
 ### Installing AI AllEarsServer
 
 1. Download the AllEarsServer .zip file
+
 Visit the Releases section and download the latest version of AllEarsServer.zip (Windows only for now).
 
 2. Extract the folder
+
 Right-click the ZIP file and choose Extract All..., then extract it to any folder you like (e.g., Desktop or Documents).
 
 3. Input Your Gemini API Key
+
 Paste your secret *secret* API Key and press enter **3 TIMES** or until the API Key is initialized.
+
 You can change it by modifying `.allears_config.json`
 
 4. Run the server
+
 Open the extracted folder and double-click AllEarsServer.exe. The server should start running, and a window will appear showing your connection status and QR code.
 
-- Connect your Android app to the server
+    - Connect your Android app to the server
 
-- Make sure your phone and your computer are connected to the same Wi-Fi network.
+    - Make sure your phone and your computer are connected to the same Wi-Fi network.
 
-- Open the AllEars mobile app.
+    - Open the AllEars mobile app.
 
-- Tap the chat bubble icon at the bottom of the screen.
+    - Tap the chat bubble icon at the bottom of the screen.
+
 
 Scan the QR code shown on your computer screen, just like how WhatsApp Web works!!
 
