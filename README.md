@@ -20,7 +20,9 @@ AllEars transforms your daily routines into a rewarding and playful experience t
 
 
 ### AI Listener
-Sometimes, you just need to talk and AllEars is ready to listen. With a built-in AI companion powered by cutting-edge language models, you can freely express your thoughts, emotions, and questions in a **judgment-free space** . Whether you're venting after a long day, reflecting on life, or simply need to be heard, AllEars offers a private and empathetic digital ear. There’s no need to sign up, no pressure to phrase things "perfectly," and no fear of being misunderstood.
+Sometimes, you just need to talk and AllEars is ready to listen. With a built-in AI companion powered by Gemini and all-MiniLM-L6-v2, you can freely express your thoughts, emotions, and questions in a **judgment-free space** .
+
+Whether you're venting after a long day, reflecting on life, or simply need to be heard, AllEars offers a private and empathetic digital ear. There’s no need to sign up, no pressure to phrase things "perfectly," and no fear of being misunderstood.
 
 <p align="center">
   <img src="footages/listen.gif" width="45%"/>
