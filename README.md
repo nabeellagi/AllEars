@@ -112,7 +112,7 @@ AllEars/
 
 ### 1. Setting Up the Flutter Mobile App (`/AllEars`)
 
-This is the heart of the AllEars mobile experience. It communicates with the FastAPI backend and embeds the digital pet minigame.
+This is the core of the AllEars mobile app. It communicates with the FastAPI backend and embeds the digital pet minigame.
 
 #### 🔧 Prerequisites
 
@@ -189,7 +189,7 @@ npm install
 npm run dev
 ```
 
-This launches the pet minigame in your browser. Eventually, this is embedded inside the mobile app as a WebView or direct render.
+This launches the pet minigame in your browser. Eventually, this is embedded inside the mobile app as a WebView.
 
 ---
 
