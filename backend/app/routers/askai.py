@@ -108,6 +108,8 @@ def conversation(prompt_data: PromptRequest, mode: str = Query(...)):
     # 🔖 Trigger keyword-based memory recall
     triggered_summaries = trigger_memory_check(prompt_data.prompt, prompt_data.id)
 
+    latest_chats = get_short_term_memory(prompt_data.id)
+
     # 🧩 Combine all triggered tag summaries
     tag_summary_text = ""
     if triggered_summaries:
@@ -122,16 +124,19 @@ def conversation(prompt_data: PromptRequest, mode: str = Query(...)):
 
     formatted_prompt = f"""
 You remember previous conversations. Reflect on those when responding.
+Your output must be based on these data
 
-# Global Summary:
+# Global Summary, repeated sentences used:
 {memory_summary}
 
-# Keyword-Triggered Summaries:
+# Keyword-Triggered Summaries, crucial context if provided:
 {tag_summary_text}
 
-# Relevant Semantic Memories:
+# Relevant Semantic Memories, majority of responses based on this:
 {memory_text}
 
+# Latest Chat Results :
+{latest_chats}
 ---
 {prompt_base}
 """.strip()

@@ -89,6 +89,7 @@ def get_or_create_gemini_key(config_path: str = ".allears_config.json") -> str:
                 return config["GEMINI_API_KEY"]
 
     key = Prompt.ask("[bold yellow]Enter your Gemini API Key")
+    console.log("[cyan]After input, press enter multiple times.")
     with open(config_path, "w") as f:
         json.dump({"GEMINI_API_KEY": key}, f)
     console.log("[cyan]Gemini API key saved to config.")

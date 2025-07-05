@@ -7,7 +7,7 @@ from sumy.nlp.tokenizers import Tokenizer
 from sumy.summarizers.lex_rank import LexRankSummarizer
 from nltk.corpus import stopwords
 import string
-from keybert import KeyBERT
+from rake_nltk import Rake
 from difflib import get_close_matches
 
 # Download required models and resources
@@ -18,7 +18,6 @@ stop_words = set(stopwords.words('english'))
 punct = set(string.punctuation)
 
 model = SentenceTransformer('all-MiniLM-L6-v2')  # Good for RAG
-kw_model = KeyBERT(model)
 
 MEMORY_DIR = "memory"
 
@@ -32,24 +31,19 @@ def ensure_memory_file_exists(filepath):
             f.write("")
 
 def extract_tags(text: str) -> set:
-    keywords = kw_model.extract_keywords(
-        text,
-        keyphrase_ngram_range=(1, 2),
-        stop_words='english',
-        use_mmr=True,
-        diversity=0.7,
-        top_n=15
-    )
+    rake = Rake(stopwords=stop_words, punctuations=punct)
+    rake.extract_keywords_from_text(text)
+    ranked_phrases_with_scores = rake.get_ranked_phrases_with_scores()
 
     # Filter by minimum relevance score and remove greetings/common phrases
-    MIN_SCORE = 0.45
+    MIN_SCORE = 3  # Adjust RAKE score threshold
     banned = {
         "hello", "hi", "welcome", "thanks", "goodbye", "bye", "nice to meet", "nice meeting",
         "take care", "thank you", "you're welcome", "see you", "how are you", "on your mind"
     }
 
     cleaned_tags = set()
-    for phrase, score in keywords:
+    for score, phrase in ranked_phrases_with_scores:
         phrase = phrase.lower().strip()
         if score < MIN_SCORE:
             continue
@@ -100,7 +94,7 @@ def retrieve_memories(query, memory_blocks, top_k=5):
     selected = [memory_texts[match['corpus_id']] for match in selected_indices]
     return selected
 
-def tag_matches(query_tag: str, tags: list[str], threshold=0.8):
+def tag_matches(query_tag: str, tags: list[str], threshold=0.4):
     matches = get_close_matches(query_tag, tags, cutoff=threshold)
     return bool(matches)
 
@@ -144,3 +138,20 @@ def trigger_memory_check(user_input: str, user_id: int):
             triggered_memories[tag] = blocks
 
     return triggered_memories
+
+def get_short_term_memory(user_id: int, n: int = 3):
+    recent = read_memories(user_id)
+    if not recent:
+        return ""
+
+    # Get the last n chats (from the bottom of the list)
+    recent = recent[-n:]
+
+    polished = []
+    for entry in recent:
+        user_text = entry.get("user", "").strip().replace("\n", " ")
+        assistant_text = entry.get("assistant", "").strip().replace("\n", " ")
+        if user_text and assistant_text:
+            polished.append(f"User: {user_text}\nAssistant: {assistant_text}")
+
+    return "\n\n".join(polished)
