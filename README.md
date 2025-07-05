@@ -2,7 +2,7 @@
 Gamified Digital Pet for Task Routine and AI Listener for Everyday Life. 
 
 <p align="center">
-  <img src="AllEars/assets/allears.png" width="50%"/>
+  <img src="AllEars/assets/img/allears.png" width="50%"/>
 </p>
 ---
 
